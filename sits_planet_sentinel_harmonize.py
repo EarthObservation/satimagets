@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 import gdal
 
 # %%
-import SatelliteImageTS as sits
+import satimagets as sits
 
 
 # %%

@@ -9,9 +9,7 @@ Copy or clone the files to your environment.
 ## Usage
 
 ```python
-import SatelliteImageTS as sits
-
-sits.image_raster_overlap(im1, im2) # Finds image overlap
+import satimagets as sits
 ```
 ## Examples
 
@@ -25,4 +23,4 @@ Pull requests are welcome. For major changes, please open an issue first to disc
 The authors acknowledge the project M3Sat – Methodology of Multitemporal Multisensor Satellite Image Analysis (No. J2-9251) was financially supported by the Slovenian Research Agency.
 
 ## License
-[MIT](https://choosealicense.com/licenses/mit/)
+This project is licensed under the terms of the [MIT license](LICENSE).
