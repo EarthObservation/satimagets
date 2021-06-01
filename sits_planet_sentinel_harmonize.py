@@ -101,25 +101,6 @@ sits.image_scatterplot(im_1, im_2[[1, 2, 3, 8],:,:], im1_in_name="Planet", im2_i
 sits.image_scatterplot(im_1_ndvi, im_2_ndvi, im1_in_name="Planet", im2_in_name="Sentinel")
 
 # %%
-# Read sample from image
-# Read image, resample
-# im_res = gdal.Warp('', im,
-#                     dstSRS=im_srs, format='VRT', outputBounds=im_bbox,
-#                     xRes=im_res, yRes=im_res,
-#                     resampleAlg=res_method)
-# # Find nodata value
-# srcband = im.GetRasterBand(1)
-# nodata = srcband.GetNoDataValue()
-
-# # Read array
-# im_res_data = im_res.ReadAsArray()
-# # Find nodata value
-# im_mask = im_res_data == nodata
-# im_res_data = ma.masked_array(im_res_data, mask=im_mask)
-
-# return im_res_data
-
-# %%
 # %%
 # Resample original images
 im_1_spl = sits.image_raster_resample(file_1_src, im_bb, 100, im_srs)
@@ -130,6 +111,15 @@ im_2_spl = sits.image_raster_resample(file_2_src, im_bb, 100, im_srs)
 b1 = im_1_spl[0]
 b2 = im_2_spl[0]
 
+# %%
+sits.image_show_band(b1)
+sits.image_show_band(b2)
+
+# %%
+# from importlib import reload
+
+# %%
+# sits = reload(sits)
 
 # %%
 sits.image_show(im_1_spl)
@@ -138,6 +128,9 @@ sits.image_show(im_2_spl)
 
 # %%
 # Find Pearson correlation coefficient
+sits.image_correlation(b1, b2)
+
+# %%
 m, b, cov = sits.image_linear_regression(b1, b2)
 print(m, b)
 print(cov)

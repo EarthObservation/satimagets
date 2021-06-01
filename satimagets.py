@@ -371,8 +371,8 @@ def image_correlation(im1, im2):
     coefficients of two single band images
 
     Args:
-        im1: image 1 one band only
-        im2: image 2 one band only
+        im1: image 1 one band only, 0 is nodata
+        im2: image 2 one band only, 0 is nodata
 
     Returns:
         array: Pearson correlation matrix
@@ -398,6 +398,9 @@ def image_correlation(im1, im2):
     if im2.dtype != float:
         im2 = im2.astype(float)
 
+    im1[im1==0] = np.nan
+    im2[im2==0] = np.nan
+
     corr = np.corrcoef(im1.flatten(), im2.flatten())
 
     return corr
@@ -408,8 +411,8 @@ def image_linear_regression(im1, im2):
     image_linear_regression Find linear regression parameters of two single band images
 
     Args:
-        im1: image 1 one band only
-        im2: image 2 one band only
+        im1: image 1 one band only, 0 is nodata
+        im2: image 2 one band only, 0 is nodata
 
     Returns:
         m, b: Linear regression parameters
@@ -434,6 +437,9 @@ def image_linear_regression(im1, im2):
         im1 = im1.astype(float)
     if im2.dtype != float:
         im2 = im2.astype(float)
+    
+    im1[im1==0] = np.nan
+    im2[im2==0] = np.nan
 
     [[m, b], cov] = np.polyfit(im1.flatten(), im2.flatten(), 1, cov=True)
 
