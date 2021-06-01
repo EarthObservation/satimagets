@@ -185,7 +185,7 @@ def image_scatterplot(im1_in, im2_in, file="", sample=10000, im1_in_name="", im2
         sys.exit(1)
     elif len(im1_in.shape) == 3:
         im_bands = im1_in.shape[0]
-        im_size = im1_in.shape[1:2]
+        im_size = im1_in.shape[1:3]
     else:
         im_bands = 1
         im_size = im1_in.shape
@@ -252,7 +252,8 @@ def image_scatterplot(im1_in, im2_in, file="", sample=10000, im1_in_name="", im2
         # Create scatter plot
         axis3 = fig.add_subplot(313, aspect='equal')
         axis3.title.set_text('Scatterplot')
-        axis3.set(xlabel=im1_in_name + band_name, ylabel=im2_in_name + band_name)
+        axis3.set(xlabel=im1_in_name + band_name,
+                  ylabel=im2_in_name + band_name)
         axis3.set_xlim(im1_lim)
         axis3.set_ylim(im2_lim)
         axis3.scatter(im1_sample, im2_sample, marker=".", s=1)
@@ -362,5 +363,80 @@ def image_show_band(im, band=0, scale="auto", **kwargs):
     # Plot
     plt.imshow(b_grey, **kwargs)
     plt.show()
+
+
+def image_correlation(im1, im2):
+    """
+    image_correlation Compute Pearson product-moment correlation 
+    coefficients of two single band images
+
+    Args:
+        im1: image 1 one band only
+        im2: image 2 one band only
+
+    Returns:
+        array: Pearson correlation matrix
+    """
+
+    # Prepare data
+    # Check if images are of same size
+    if im1.shape != im2.shape:
+        print("Images are not of same size.")
+        print(im1.shape, im2.shape)
+        sys.exit(1)
+    elif len(im1.shape) == 3:
+        print("Images must be single band.")
+        print(im1.shape, im2.shape)
+        sys.exit(1)
+    else:
+        im1 = ma.array([im1])
+        im2 = ma.array([im2])
+
+    # Check if data is integer, convert to float
+    if im1.dtype != float:
+        im1 = im1.astype(float)
+    if im2.dtype != float:
+        im2 = im2.astype(float)
+
+    corr = np.corrcoef(im1.flatten(), im2.flatten())
+
+    return corr
+
+
+def image_linear_regression(im1, im2):
+    """
+    image_linear_regression Find linear regression parameters of two single band images
+
+    Args:
+        im1: image 1 one band only
+        im2: image 2 one band only
+
+    Returns:
+        m, b: Linear regression parameters
+    """
+
+    # Prepare data
+    # Check if images are of same size
+    if im1.shape != im2.shape:
+        print("Images are not of same size.")
+        print(im1.shape, im2.shape)
+        sys.exit(1)
+    elif len(im1.shape) == 3:
+        print("Images must be single band.")
+        print(im1.shape, im2.shape)
+        sys.exit(1)
+    else:
+        im1 = ma.array([im1])
+        im2 = ma.array([im2])
+
+    # Check if data is integer, convert to float
+    if im1.dtype != float:
+        im1 = im1.astype(float)
+    if im2.dtype != float:
+        im2 = im2.astype(float)
+
+    [[m, b], cov] = np.polyfit(im1.flatten(), im2.flatten(), 1, cov=True)
+
+    return m, b, cov
 
 # TODO Stack images
