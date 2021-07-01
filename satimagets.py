@@ -16,7 +16,7 @@ import sys
 
 
 # Find overlapping area, determine minimum resolution and resample images
-def image_raster_overlap(im1, im2):
+def image_raster_overlap(im1, im2, debug=1):
     """
     image_raster_overlap: Open raster images, find overlapping area, determine
      minimum resolution and resample both images. Function returns the overlapping
@@ -71,15 +71,16 @@ def image_raster_overlap(im1, im2):
         print(im1_gt, im1)
         print(im2_gt, im2)
         return
-
-    print('Overlapping bounding box: %s' % str(stack_bb))
+    if (debug==1):
+        print('Overlapping bounding box: %s' % str(stack_bb))
 
     # Stack image size and resolution
     stack_res = min(im1_gt[1], im2_gt[1])
     stack_x = int((stack_bb[2] - stack_bb[0]) / stack_res)
     stack_y = int((stack_bb[3] - stack_bb[1]) / stack_res)
-    print("Stack resolution:", stack_res)
-    print("Stack dimensions:", stack_x, stack_y)
+    if (debug==1):
+        print("Stack resolution:", stack_res)
+        print("Stack dimensions:", stack_x, stack_y)
 
     return stack_bb, stack_res, stack_srs
 
@@ -142,15 +143,16 @@ def image_raster_resample(im, im_bbox, im_res, im_srs, res_method="near"):
     im_mask = im_res_data == nodata
     im_res_data = ma.masked_array(im_res_data, mask=im_mask)
 
-    return im_res_data
-
+    return im_res_data 
 
 # TODO create function for masking
-def planetscope_mask(im, im_udm):
+def mask_data(im, im_udm, value=0):
     """
-    planetscope_mask: Apply UDM to PlanetScope image. All areas with clouds and unusable data are
-    masked with NaN. More information About the mask is available in:
+    mask_data: Apply value mask to an array. All areas with different value are masked with NaN. Example: clouds and unusable data.
+    More information About the mask is available in:
     https://www.planet.com/products/satellite-imagery/files/1610.06_Spec%20Sheet_Combined_Imagery_Product_Letter_ENGv1.pdf
+    Or apply STORM mask to Sentinel-2 image. All areas with clouds and unusable data are
+    masked with NaN. More information About the mask is available in txt files with the processed images.
 
     Args:
         im: image as numpy array, 16-bit
@@ -159,10 +161,12 @@ def planetscope_mask(im, im_udm):
     Returns:
         im_masked: masked image
     """
-
+    
     # Mask image
-    im_out = np.where(im_udm == 1, im, np.nan)
+    im_out = np.where(im_udm == value, im, np.nan)
+    
     return im_out
+
 
 
 # TODO create function for scatterplot
@@ -185,7 +189,7 @@ def image_scatterplot(im1_in, im2_in, file="", sample=10000, im1_in_name="", im2
         sys.exit(1)
     elif len(im1_in.shape) == 3:
         im_bands = im1_in.shape[0]
-        im_size = im1_in.shape[1:3]
+        im_size = im1_in.shape[1:2]
     else:
         im_bands = 1
         im_size = im1_in.shape
@@ -197,8 +201,9 @@ def image_scatterplot(im1_in, im2_in, file="", sample=10000, im1_in_name="", im2
     if im2_in.dtype != float:
         im2_in = im2_in.astype(float)
     # Mask nodata
-    im1_in = im1_in.filled(np.nan)
-    im2_in = im2_in.filled(np.nan)
+    # TODO they are already masked, filled is not supported in numpy
+    #im1_in = im1_in.filled(np.nan)
+    #im2_in = im2_in.filled(np.nan)
 
     # TODO check if output is to file
 
@@ -252,8 +257,7 @@ def image_scatterplot(im1_in, im2_in, file="", sample=10000, im1_in_name="", im2
         # Create scatter plot
         axis3 = fig.add_subplot(313, aspect='equal')
         axis3.title.set_text('Scatterplot')
-        axis3.set(xlabel=im1_in_name + band_name,
-                  ylabel=im2_in_name + band_name)
+        axis3.set(xlabel=im1_in_name + band_name, ylabel=im2_in_name + band_name)
         axis3.set_xlim(im1_lim)
         axis3.set_ylim(im2_lim)
         axis3.scatter(im1_sample, im2_sample, marker=".", s=1)
@@ -261,8 +265,9 @@ def image_scatterplot(im1_in, im2_in, file="", sample=10000, im1_in_name="", im2
 
         # Show image
         fig.show()
-        # fig.savefig(out_scatter)
-        #
+        if file!="":
+            fig.savefig(file+"_"+band_name)
+        
         # # Correlation coefficient
         # np.corrcoef(ps_ndvi_sample, s2_ndvi_sample)
 
@@ -293,8 +298,8 @@ def image_show(im, bands=[2, 1, 0], scale="auto", **kwargs):
     elif type(scale) == str:
         if scale == "auto":
             for band in range(3):
-                scale_max = np.quantile(im_in[band].compressed(), 0.99)
-                scale_min = np.quantile(im_in[band].compressed(), 0.01)
+                scale_max = np.quantile(im_in[band], 0.99)
+                scale_min = np.quantile(im_in[band], 0.01)
                 scale_f = 1 / (scale_max - scale_min)
                 im_in[band] = (im_in[band] - scale_min) * scale_f
         elif scale == "no":
