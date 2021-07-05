@@ -170,7 +170,7 @@ def mask_data(im, im_udm, value=0):
 
 
 # TODO create function for scatterplot
-def image_scatterplot(im1_in, im2_in, file="", sample=10000, im1_in_name="", im2_in_name="", **kwargs):
+def image_scatterplot(im1_in, im2_in, file="", sample=10000, im1_in_name="", im2_in_name="", debug=1, **kwargs):
     """
     image_scatterplot: Display scatterplot of bands beetween images.
 
@@ -200,12 +200,17 @@ def image_scatterplot(im1_in, im2_in, file="", sample=10000, im1_in_name="", im2
         im1_in = im1_in.astype(float)
     if im2_in.dtype != float:
         im2_in = im2_in.astype(float)
+    # Check if enough values available for sampling
+    if np.sum(~np.isnan(im1_in)) < sample:
+        sample = np.sum(np.all(~np.isnan(im1_in), axis=0))
+        print("Not enough values to sample, reducing the treshold to", sample)
+        
     # Mask nodata
     # TODO they are already masked, filled is not supported in numpy
     #im1_in = im1_in.filled(np.nan)
     #im2_in = im2_in.filled(np.nan)
 
-    # TODO check if output is to file
+    
 
     # Plot parameters
     # TODO Check cmap
