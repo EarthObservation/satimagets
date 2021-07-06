@@ -129,8 +129,9 @@ def image_raster_resample(im, im_bbox, im_res, im_srs, res_method="near"):
     """
 
     # Read image, resample
+    # in case of no data replace with dstNodata make sure value is not used at later stages
     im_res = gdal.Warp('', im,
-                       dstSRS=im_srs, format='VRT', outputBounds=im_bbox,
+                       dstSRS=im_srs, format='VRT', outputBounds=im_bbox, dstNodata = 255,
                        xRes=im_res, yRes=im_res,
                        resampleAlg=res_method)
     # Find nodata value
@@ -170,7 +171,7 @@ def mask_data(im, im_udm, value=0):
 
 
 # TODO create function for scatterplot
-def image_scatterplot(im1_in, im2_in, file="", sample=10000, im1_in_name="", im2_in_name="", debug=1, **kwargs):
+def image_scatterplot(im1_in, im2_in, file="", sample=10000, im1_in_name="", im2_in_name="", show_images = True, debug=1, **kwargs):
     """
     image_scatterplot: Display scatterplot of bands beetween images.
 
@@ -201,8 +202,9 @@ def image_scatterplot(im1_in, im2_in, file="", sample=10000, im1_in_name="", im2
     if im2_in.dtype != float:
         im2_in = im2_in.astype(float)
     # Check if enough values available for sampling
-    if np.sum(~np.isnan(im1_in)) < sample:
-        sample = np.sum(np.all(~np.isnan(im1_in), axis=0))
+    count_vaild = np.sum(np.all(~np.isnan(im1_in), axis=0))
+    if count_vaild < sample:
+        sample = count_vaild
         print("Not enough values to sample, reducing the treshold to", sample)
         
     # Mask nodata
@@ -228,17 +230,21 @@ def image_scatterplot(im1_in, im2_in, file="", sample=10000, im1_in_name="", im2
         band_name = " B" + str(band + 1)
 
         # Create plot
-        fig = plt.figure(figsize=(8.27, 11.69), dpi=100)
-
-        # Plot first image
-        axis1 = fig.add_subplot(311)
-        axis1.title.set_text(im1_in_name)
-        axis1.imshow(im1, cmap=cmap, clim=im1_lim)
-
-        # Plot second image
-        axis2 = fig.add_subplot(312)
-        axis2.title.set_text(im2_in_name)
-        axis2.imshow(im2, cmap=cmap, clim=im2_lim)
+        fig = plt.figure(figsize=(8.27, 8.27), dpi=100)
+        plot_location = 111
+        if show_images:
+            fig = plt.figure(figsize=(8.27, 11.69), dpi=100)
+            plot_location = 311
+            # Plot first image
+            axis1 = fig.add_subplot(plot_location)
+            axis1.title.set_text(im1_in_name)
+            axis1.imshow(im1, cmap=cmap, clim=im1_lim)
+            plot_location+=1
+            # Plot second image
+            axis2 = fig.add_subplot(plot_location)
+            axis2.title.set_text(im2_in_name)
+            axis2.imshow(im2, cmap=cmap, clim=im2_lim)
+            plot_location+=1
 
         # TODO Flatten the array, remove no-data
         im1_flat = im1.flat
@@ -260,7 +266,7 @@ def image_scatterplot(im1_in, im2_in, file="", sample=10000, im1_in_name="", im2
         m, b = np.polyfit(im1_sample, im2_sample, 1)
 
         # Create scatter plot
-        axis3 = fig.add_subplot(313, aspect='equal')
+        axis3 = fig.add_subplot(plot_location, aspect='equal')
         axis3.title.set_text('Scatterplot')
         axis3.set(xlabel=im1_in_name + band_name, ylabel=im2_in_name + band_name)
         axis3.set_xlim(im1_lim)
@@ -268,10 +274,13 @@ def image_scatterplot(im1_in, im2_in, file="", sample=10000, im1_in_name="", im2
         axis3.scatter(im1_sample, im2_sample, marker=".", s=1)
         axis3.plot(im1_sample, m * im1_sample + b, '-', c="red")
 
-        # Show image
-        fig.show()
+        # Save or show image
         if file!="":
             fig.savefig(file+"_"+band_name)
+            plt.close()
+        else:
+            fig.show()
+            plt.close()
         
         # # Correlation coefficient
         # np.corrcoef(ps_ndvi_sample, s2_ndvi_sample)
