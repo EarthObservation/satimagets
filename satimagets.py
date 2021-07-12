@@ -180,6 +180,7 @@ def image_scatterplot(im1_in, im2_in, file="", sample=10000, im1_in_name="", im2
         im2: second image as numpy array
         file: name of PDF to store scatterplot
         sample: number of sample points
+        show_images: plot original image
     """
 
     # Prepare data
@@ -277,14 +278,12 @@ def image_scatterplot(im1_in, im2_in, file="", sample=10000, im1_in_name="", im2
         # Save or show image
         if file!="":
             fig.savefig(file+"_"+band_name)
-            plt.close()
-        else:
+        if show_images:
             fig.show()
-            plt.close()
-        
+
         # # Correlation coefficient
         # np.corrcoef(ps_ndvi_sample, s2_ndvi_sample)
-
+        plt.close(fig)
     return
 
 
